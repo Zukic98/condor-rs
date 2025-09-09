@@ -5,6 +5,7 @@ use crate::{
     ring::{rq::Rq, rq_matrix::RqMatrix, rq_vector::RqVector},
 };
 type Zq = ZqLabrador;
+use crate::ring::zq::{LabradorMod, Mod};
 pub use sponges::Sponge;
 
 pub struct LabradorTranscript<S: Sponge> {
@@ -83,9 +84,12 @@ impl<S: Sponge> LabradorTranscript<S> {
         rank: usize,
         multiplicity: usize,
     ) -> Projection {
-        // r vectors, each of length 256 * nD
         let row_size = 2 * security_parameter;
         let col_size = rank * Rq::DEGREE;
+
+        // Precompute thresholds
+        let quarter = LabradorMod::MODULUS / 4;
+        let three_quarters = 3 * quarter;
 
         let matrices = (0..multiplicity)
             .map(|_| {
@@ -96,12 +100,13 @@ impl<S: Sponge> LabradorTranscript<S> {
                         let coeffs = chunk
                             .iter()
                             .map(|elem| {
-                                if elem.get_value() < 2_u64.pow(30) {
+                                let val = elem.get_value();
+                                if val < quarter {
                                     Zq::NEG_ONE
-                                } else if elem.get_value() < 2_u64.pow(31) {
-                                    Zq::ONE
-                                } else {
+                                } else if val < three_quarters {
                                     Zq::ZERO
+                                } else {
+                                    Zq::ONE
                                 }
                             })
                             .collect();

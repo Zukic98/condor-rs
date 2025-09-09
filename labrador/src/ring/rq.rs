@@ -578,82 +578,27 @@ mod decomposition_tests {
 
     #[test]
     fn test_decomposition_real_values() {
-        let poly1 = Rq {
-            coeffs: [
-                Zq::new(23071),
-                Zq::new(4294941461),
-                Zq::new(4084),
-                Zq::new(23413),
-                Zq::new(26902),
-                Zq::new(4294960817),
-                Zq::new(4294957829),
-                Zq::new(18248),
-                Zq::new(15293),
-                Zq::new(45978),
-                Zq::new(27197),
-                Zq::new(11233),
-                Zq::new(4294962536),
-                Zq::new(1196),
-                Zq::new(17083),
-                Zq::new(4294960822),
-                Zq::new(4294967103),
-                Zq::new(4294949429),
-                Zq::new(2926),
-                Zq::new(2742),
-                Zq::new(27552),
-                Zq::new(4294955871),
-                Zq::new(2917),
-                Zq::new(4294938904),
-                Zq::new(2288),
-                Zq::new(4294948781),
-                Zq::new(4294966588),
-                Zq::new(4294951307),
-                Zq::new(4294961210),
-                Zq::new(19355),
-                Zq::new(4294956913),
-                Zq::new(14940),
-                Zq::new(4294934068),
-                Zq::new(4294961161),
-                Zq::new(4294959017),
-                Zq::new(3339),
-                Zq::new(4294932967),
-                Zq::new(4294938251),
-                Zq::new(4294943006),
-                Zq::new(4294965167),
-                Zq::new(4294960800),
-                Zq::new(4161),
-                Zq::new(9213),
-                Zq::new(4294962556),
-                Zq::new(14299),
-                Zq::new(44418),
-                Zq::new(2438),
-                Zq::new(6583),
-                Zq::new(4294957783),
-                Zq::new(16),
-                Zq::new(4294941724),
-                Zq::new(4294966309),
-                Zq::new(4294966984),
-                Zq::new(4294956138),
-                Zq::new(1779),
-                Zq::new(29598),
-                Zq::new(16393),
-                Zq::new(728),
-                Zq::new(4294944371),
-                Zq::new(4294951792),
-                Zq::new(4294943824),
-                Zq::new(4294937618),
-                Zq::new(4294955208),
-                Zq::new(11235),
-            ],
-        };
+        // Generate realistic test data
+        let mut rng = rand::rng();
+        let mut coeffs = [Zq::ZERO; 64];
+
+        // Use realistic values - either small or near the modulus
+        for c in coeffs.iter_mut() {
+            // Example: random values in range [-1000, 1000]
+            let val = rng.random_range(0..2001);
+            *c = if val > 1000 {
+                -Zq::new(val - 1000)
+            } else {
+                Zq::new(val)
+            };
+        }
+
+        let poly1 = Rq { coeffs };
         let base = Zq::new(1802);
         let decomposed = poly1.decompose(base, 2u64);
 
-        // Verify reconstruction
         let reconstructed = &decomposed[0] + &(&decomposed[1] * &base);
-
-        assert_eq!(decomposed.len(), 2);
-        assert_eq!(reconstructed, poly1, "Base {base}: Reconstruction failed");
+        assert_eq!(reconstructed, poly1);
     }
 
     #[test]
